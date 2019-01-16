@@ -449,7 +449,7 @@ class _TileLayerState extends State<TileLayer> {
         return new FileImage(new File(url));
       }
     } else {
-      return new NetworkImageWithRetry(url);
+      return new CachedNetworkImageProvider(url);
     }
   }
 
