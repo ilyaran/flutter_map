@@ -5,8 +5,8 @@ import 'package:flutter_map/src/map/map.dart';
 import 'package:latlong/latlong.dart';
 
 class MarkerLayerOptions extends LayerOptions {
-  final List<Marker> markers;
-  MarkerLayerOptions({this.markers = const [], rebuild})
+  final Map<String,Marker> markers;
+  MarkerLayerOptions({this.markers = const <String,Marker>{}, rebuild})
       : super(rebuild: rebuild);
 }
 
@@ -111,30 +111,26 @@ class MarkerLayer extends StatelessWidget {
       stream: stream, // a Stream<int> or null
       builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
         var markers = <Widget>[];
-        for (var markerOpt in markerOpts.markers) {
+         this.markerOpts.markers.forEach((String key, Marker markerOpt){
           var pos = map.project(markerOpt.point);
           pos = pos.multiplyBy(map.getZoomScale(map.zoom, map.zoom)) -
               map.getPixelOrigin();
 
-          var pixelPosX =
-              (pos.x - (markerOpt.width - markerOpt.anchor.left)).toDouble();
-          var pixelPosY =
-              (pos.y - (markerOpt.height - markerOpt.anchor.top)).toDouble();
+          var pixelPosX = (pos.x - (markerOpt.width - markerOpt.anchor.left)).toDouble();
+          var pixelPosY = (pos.y - (markerOpt.height - markerOpt.anchor.top)).toDouble();
 
-          if (!_boundsContainsMarker(markerOpt)) {
-            continue;
+          if (map.bounds.contains(markerOpt.point)) {
+            markers.add(
+              Positioned(
+                width: markerOpt.width,
+                height: markerOpt.height,
+                left: pixelPosX,
+                top: pixelPosY,
+                child: markerOpt.builder(context),
+              ),
+            );
           }
-
-          markers.add(
-            Positioned(
-              width: markerOpt.width,
-              height: markerOpt.height,
-              left: pixelPosX,
-              top: pixelPosY,
-              child: markerOpt.builder(context),
-            ),
-          );
-        }
+        });
         return Container(
           child: Stack(
             children: markers,
